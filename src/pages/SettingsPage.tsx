@@ -134,6 +134,26 @@ export function SettingsPage() {
             />
           </div>
           <div>
+            <label className="block font-medium mb-1">Administrator Name</label>
+            <input
+              type="text"
+              required
+              value={settings.adminContactName || ''}
+              onChange={(e) => setSettings({ ...settings, adminContactName: e.target.value })}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">Contact Email</label>
+            <input
+              type="email"
+              required
+              value={settings.adminContactEmail || ''}
+              onChange={(e) => setSettings({ ...settings, adminContactEmail: e.target.value })}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950"
+            />
+          </div>
+          <div>
             <label className="block font-medium mb-1">Daily Fine Rate ($)</label>
             <input
               type="number"

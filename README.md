@@ -1,4 +1,4 @@
-# Folio Ledger — Library Management System
+# Library Management System
 
 Production-grade full-stack Library Management System built with React, TypeScript, Tailwind CSS, Motion, Recharts, Node.js, Express, Socket.IO, and MongoDB/Mongoose.
 
@@ -38,3 +38,8 @@ Production-grade full-stack Library Management System built with React, TypeScri
 - [Database Schema & Indexing](./docs/DATABASE.md)
 - [Security Architecture](./docs/SECURITY.md)
 - [Deployment & MongoDB Setup Guide](./docs/DEPLOYMENT.md)
+
+## Maintainer
+
+- **Name**: Raghuraj Pratap Singh
+- **Email**: `raghurajpratapsingh8787@gmail.com`

@@ -10,7 +10,7 @@ export function exportTableReportPdf(params: {
 }): void {
   const doc = new jsPDF({ orientation: params.columns.length > 6 ? 'landscape' : 'portrait' });
   doc.setFontSize(16);
-  doc.text(params.libraryName || 'Folio Ledger Library', 14, 16);
+  doc.text(params.libraryName || 'Library Management System', 14, 16);
   doc.setFontSize(12);
   doc.text(params.title, 14, 24);
   doc.setFontSize(9);
@@ -37,7 +37,7 @@ export function exportReceiptPdf(params: {
 }): void {
   const doc = new jsPDF({ unit: 'mm', format: [148, 210] });
   doc.setFontSize(15);
-  doc.text(params.libraryName || 'Folio Ledger Library', 14, 18);
+  doc.text(params.libraryName || 'Library Management System', 14, 18);
   doc.setFontSize(11);
   doc.text(params.receiptTitle, 14, 26);
   doc.setFontSize(9);

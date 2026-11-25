@@ -27,11 +27,23 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res, next) => {
 router.patch('/:id/read', authenticate, async (req: AuthenticatedRequest, res, next) => {
   try {
     const id = objectIdSchema.parse(req.params.id);
-    const updated = await Notification.findByIdAndUpdate(
-      id,
+    const user = req.user!;
+    const updated = await Notification.findOneAndUpdate(
+      {
+        _id: id,
+        $or: [
+          { recipientUserId: user._id },
+          { recipientRole: user.role },
+          { recipientRole: 'ALL' },
+        ],
+      },
       { $set: { isRead: true } },
       { new: true }
     );
+    if (!updated) {
+      res.status(404).json({ error: 'Notification not found.' });
+      return;
+    }
     res.json({ notification: updated });
   } catch (err) {
     next(err);

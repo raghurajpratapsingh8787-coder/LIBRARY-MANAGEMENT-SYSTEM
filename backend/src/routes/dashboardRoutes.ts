@@ -214,6 +214,8 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res, next) => {
       };
     }
 
+    const isStaff = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'LIBRARIAN';
+
     res.json({
       kpis: {
         totalBooks: bookSummary.totalCopies,
@@ -243,11 +245,11 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res, next) => {
       lists: {
         recentlyAddedBooks,
         popularBooks: mostBorrowedBooks,
-        recentlyIssued,
-        recentlyReturned,
-        overdueAlerts,
-        upcomingDueDates,
-        recentActivities,
+        recentlyIssued: isStaff ? recentlyIssued : [],
+        recentlyReturned: isStaff ? recentlyReturned : [],
+        overdueAlerts: isStaff ? overdueAlerts : [],
+        upcomingDueDates: isStaff ? upcomingDueDates : [],
+        recentActivities: isStaff ? recentActivities : [],
       },
       memberPersonal,
     });

@@ -35,13 +35,13 @@ export async function ensureDefaultSettings(): Promise<void> {
 
 export async function ensureEnvAdminIfConfigured(): Promise<void> {
   if (!env.adminInitialPassword) return;
-  const adminEmail = env.adminInitialEmail || 'admin@folio.library';
+  const adminEmail = env.adminInitialEmail || 'raghurajpratapsingh8787@gmail.com';
   const existingAdmin = await User.findOne({ role: 'SUPER_ADMIN' });
   const hash = await bcrypt.hash(env.adminInitialPassword, 12);
 
   if (!existingAdmin) {
     await User.create({
-      name: 'System Administrator',
+      name: 'Raghuraj Pratap Singh',
       email: adminEmail,
       passwordHash: hash,
       role: 'SUPER_ADMIN',
@@ -359,22 +359,22 @@ export async function seedSampleLibraryData(options?: {
   // Optional demo Librarian & Member user logins if demo password provided during first-run setup
   if (options?.demoStaffPassword && options.demoStaffPassword.length >= 8) {
     const demoHash = await bcrypt.hash(options.demoStaffPassword, 12);
-    const existingLib = await User.findOne({ email: 'librarian@folio.library' });
+    const existingLib = await User.findOne({ email: 'librarian@library.local' });
     if (!existingLib) {
       await User.create({
         name: 'Clara Vance (Librarian)',
-        email: 'librarian@folio.library',
+        email: 'librarian@library.local',
         passwordHash: demoHash,
         role: 'LIBRARIAN',
         avatarUrl: '/src/assets/images/avatar_head_librarian_1795597158213.jpg',
         isActive: true,
       });
     }
-    const existingMemberUser = await User.findOne({ email: 'member@folio.library' });
+    const existingMemberUser = await User.findOne({ email: 'member@library.local' });
     if (!existingMemberUser) {
       const mUser = await User.create({
         name: 'Marcus Vance',
-        email: 'member@folio.library',
+        email: 'member@library.local',
         passwordHash: demoHash,
         role: 'MEMBER',
         memberId: members[1]._id,
@@ -607,7 +607,7 @@ export async function seedSampleLibraryData(options?: {
 
   await AuditLog.create({
     actorUserId: actorId,
-    actorEmail: 'system@folio.library',
+    actorEmail: 'system@library.local',
     actorRole: 'SUPER_ADMIN',
     action: 'WORKSPACE_SEEDED',
     entityType: 'LibrarySettings',

@@ -6,8 +6,13 @@ dotenv.config();
 const runtimeAccessSecret = crypto.randomBytes(32).toString('hex');
 const runtimeRefreshSecret = crypto.randomBytes(32).toString('hex');
 
+const resolvedPort = Number(
+  process.env.DEFAULT_APP_PORT ||
+    (process.env.PORT && process.env.PORT !== process.env.NGINX_PORT ? process.env.PORT : 3000)
+);
+
 export const env = {
-  port: Number(process.env.PORT || 3000),
+  port: Number.isFinite(resolvedPort) && resolvedPort > 0 ? resolvedPort : 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   isProduction: process.env.NODE_ENV === 'production',
   mongodbUri: (process.env.MONGODB_URI || '').trim(),

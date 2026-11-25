@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticate, requireRole } from '../middleware/auth';
+import { HttpError } from '../middleware/errorHandler';
 import {
   Book,
   FinePayment,
@@ -19,9 +20,18 @@ router.get('/:type', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'), asyn
     const search = String(req.query.search || '').trim();
 
     const dateRange: Record<string, Date> = {};
-    if (fromStr) dateRange.$gte = new Date(fromStr);
+    if (fromStr) {
+      const fromDate = new Date(fromStr);
+      if (Number.isNaN(fromDate.getTime())) {
+        throw new HttpError(400, 'Invalid "from" date filter.');
+      }
+      dateRange.$gte = fromDate;
+    }
     if (toStr) {
       const toDate = new Date(toStr);
+      if (Number.isNaN(toDate.getTime())) {
+        throw new HttpError(400, 'Invalid "to" date filter.');
+      }
       toDate.setHours(23, 59, 59, 999);
       dateRange.$lte = toDate;
     }
@@ -129,10 +139,18 @@ router.get('/:type', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'), asyn
           .populate('bookId', 'title')
           .populate('memberId', 'fullName memberCode');
 
+        const filtered = searchRegex
+          ? docs.filter((d) => {
+              const title = (d.bookId as unknown as { title?: string })?.title || '';
+              const member = (d.memberId as unknown as { fullName?: string })?.fullName || '';
+              return searchRegex.test(title) || searchRegex.test(member) || searchRegex.test(d.transactionCode);
+            })
+          : docs;
+
         res.json({
           title: type === 'monthly-issue' ? 'Monthly Issue Report' : 'Book Borrowing History Report',
           columns: ['Code', 'Book Title', 'Member', 'Issued', 'Due', 'Returned', 'Status'],
-          rows: docs.map((d) => [
+          rows: filtered.map((d) => [
             d.transactionCode,
             (d.bookId as unknown as { title?: string })?.title || '',
             (d.memberId as unknown as { fullName?: string })?.fullName || '',
@@ -154,10 +172,18 @@ router.get('/:type', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'), asyn
           .populate('bookId', 'title')
           .populate('memberId', 'fullName');
 
+        const filtered = searchRegex
+          ? docs.filter((d) => {
+              const title = (d.bookId as unknown as { title?: string })?.title || '';
+              const member = (d.memberId as unknown as { fullName?: string })?.fullName || '';
+              return searchRegex.test(title) || searchRegex.test(member) || searchRegex.test(d.returnCode);
+            })
+          : docs;
+
         res.json({
           title: 'Monthly Return Report',
           columns: ['Return Code', 'Book Title', 'Member', 'Return Date', 'Overdue Days', 'Fine Assessed', 'Condition'],
-          rows: docs.map((d) => [
+          rows: filtered.map((d) => [
             d.returnCode,
             (d.bookId as unknown as { title?: string })?.title || '',
             (d.memberId as unknown as { fullName?: string })?.fullName || '',
@@ -171,7 +197,11 @@ router.get('/:type', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'), asyn
       }
 
       case 'most-borrowed': {
-        const books = await Book.find({ status: { $ne: 'ARCHIVED' } })
+        const bookFilter: Record<string, unknown> = { status: { $ne: 'ARCHIVED' } };
+        if (searchRegex) {
+          bookFilter.$or = [{ title: searchRegex }, { bookCode: searchRegex }, { isbn: searchRegex }];
+        }
+        const books = await Book.find(bookFilter)
           .sort({ borrowCount: -1 })
           .limit(50)
           .populate('authorId', 'name')
@@ -216,10 +246,16 @@ router.get('/:type', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'), asyn
           { $sort: { totalCopies: -1 } },
         ]);
 
+        const filteredAgg = searchRegex
+          ? agg.filter(
+              (row) => searchRegex.test(row.category.name) || searchRegex.test(row.category.code)
+            )
+          : agg;
+
         res.json({
           title: 'Category-Wise Inventory Report',
           columns: ['Category Code', 'Category Name', 'Unique Titles', 'Total Copies', 'Available', 'Issued', 'Historical Borrows'],
-          rows: agg.map((row) => [
+          rows: filteredAgg.map((row) => [
             row.category.code,
             row.category.name,
             row.titles,
@@ -241,10 +277,22 @@ router.get('/:type', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'), asyn
           .populate('memberId', 'fullName memberCode')
           .populate('fineId', 'fineCode');
 
+        const filtered = searchRegex
+          ? payments.filter((p) => {
+              const fineCode = (p.fineId as unknown as { fineCode?: string })?.fineCode || '';
+              const member = (p.memberId as unknown as { fullName?: string })?.fullName || '';
+              return (
+                searchRegex.test(p.receiptNumber) ||
+                searchRegex.test(fineCode) ||
+                searchRegex.test(member)
+              );
+            })
+          : payments;
+
         res.json({
           title: 'Fine Collection & Settlement Report',
           columns: ['Receipt #', 'Fine Code', 'Member', 'Method', 'Amount', 'Payment Date', 'Notes'],
-          rows: payments.map((p) => [
+          rows: filtered.map((p) => [
             p.receiptNumber,
             (p.fineId as unknown as { fineCode?: string })?.fineCode || '',
             (p.memberId as unknown as { fullName?: string })?.fullName || '',

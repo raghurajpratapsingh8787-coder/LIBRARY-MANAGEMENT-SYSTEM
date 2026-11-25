@@ -60,8 +60,8 @@ test('End-to-end API, Circulation, RBAC, and Security Verification', async (t) =
     const bootRes = await api('/api/auth/bootstrap', {
       method: 'POST',
       body: {
-        name: 'Principal Admin',
-        email: 'admin@folio.library',
+        name: 'Raghuraj Pratap Singh',
+        email: 'raghurajpratapsingh8787@gmail.com',
         password: 'AdminPass123!',
         seedSampleData: true,
         demoStaffPassword: 'StaffPass123!',
@@ -260,6 +260,92 @@ test('End-to-end API, Circulation, RBAC, and Security Verification', async (t) =
     assert.ok(refreshRes.data.accessToken);
   });
 
+  await t.test('6. Security Audit Regression Checks (IDOR, Member Redaction, Safe URLs, CSV Formula Escaping, Date Validation)', async () => {
+    // 6a. Member dashboard redacts staff/patron activity lists (prevents patron email disclosure)
+    const memberDash = await api('/api/dashboard', { token: memberToken });
+    assert.equal(memberDash.status, 200);
+    assert.deepEqual(memberDash.data.lists.overdueAlerts, []);
+    assert.deepEqual(memberDash.data.lists.recentlyIssued, []);
+    assert.deepEqual(memberDash.data.lists.recentActivities, []);
+
+    // 6b. Notification IDOR: member cannot mark librarian-only notification as read
+    const adminNotifs = await api('/api/notifications', { token: adminToken });
+    const librarianOnlyNotif = adminNotifs.data.notifications.find(
+      (n: { recipientRole?: string }) => n.recipientRole === 'LIBRARIAN'
+    );
+    if (librarianOnlyNotif) {
+      const idorPatch = await api(`/api/notifications/${librarianOnlyNotif._id}/read`, {
+        method: 'PATCH',
+        token: memberToken,
+      });
+      assert.equal(idorPatch.status, 404);
+    }
+
+    // 6c. Unsafe URL schemes (javascript:, data:) are rejected on book cover & author website
+    const taxRes = await api('/api/taxonomy/categories', { token: adminToken });
+    const authorsRes = await api('/api/taxonomy/authors', { token: adminToken });
+    const pubsRes = await api('/api/taxonomy/publishers', { token: adminToken });
+
+    const xssCoverBook = await api('/api/books', {
+      method: 'POST',
+      token: adminToken,
+      body: {
+        isbn: '978-0-999999-01-1',
+        title: 'XSS Scheme Test',
+        authorId: authorsRes.data.authors[0]._id,
+        publisherId: pubsRes.data.publishers[0]._id,
+        categoryId: taxRes.data.categories[0]._id,
+        coverImageUrl: 'javascript:alert(1)',
+        publicationDate: '2025-05-01',
+        shelfNumber: 'Z9-99',
+        totalCopies: 1,
+      },
+    });
+    assert.equal(xssCoverBook.status, 400);
+
+    const xssAuthor = await api('/api/taxonomy/authors', {
+      method: 'POST',
+      token: adminToken,
+      body: {
+        name: 'Unsafe Link Author',
+        website: 'javascript:alert(document.domain)',
+      },
+    });
+    assert.equal(xssAuthor.status, 400);
+
+    // 6d. CSV export neutralizes leading spreadsheet formula characters
+    const formulaBook = await api('/api/books', {
+      method: 'POST',
+      token: adminToken,
+      body: {
+        isbn: '978-0-999999-02-8',
+        title: '=CMD("calc")',
+        authorId: authorsRes.data.authors[0]._id,
+        publisherId: pubsRes.data.publishers[0]._id,
+        categoryId: taxRes.data.categories[0]._id,
+        publicationDate: '2025-05-01',
+        shelfNumber: 'Z9-98',
+        totalCopies: 1,
+      },
+    });
+    assert.equal(formulaBook.status, 201);
+
+    const csvRaw = await fetch(`${baseUrl}/api/books/export/csv`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.equal(csvRaw.status, 200);
+    const csvText = await csvRaw.text();
+    assert.ok(csvText.includes(`"'=CMD(""calc"")"`));
+
+    // 6e. Invalid report date filter returns 400 instead of 500 CastError
+    const badDateReport = await api('/api/reports/borrowing-history?from=not-a-date', {
+      token: adminToken,
+    });
+    assert.equal(badDateReport.status, 400);
+  });
+
+  appSetup.io.close();
+  server.closeAllConnections?.();
   server.close();
   await disconnectDatabase();
 });

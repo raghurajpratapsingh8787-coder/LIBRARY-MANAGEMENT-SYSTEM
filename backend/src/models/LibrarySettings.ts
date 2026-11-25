@@ -2,6 +2,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ILibrarySettings extends Document {
   libraryName: string;
+  adminContactName: string;
+  adminContactEmail: string;
   dailyFineRate: number;
   maxFineAmount: number;
   gracePeriodDays: number;
@@ -20,7 +22,14 @@ export interface ILibrarySettings extends Document {
 
 const LibrarySettingsSchema = new Schema<ILibrarySettings>(
   {
-    libraryName: { type: String, default: 'Folio Ledger Central Library', trim: true },
+    libraryName: { type: String, default: 'Library Management System', trim: true },
+    adminContactName: { type: String, default: 'Raghuraj Pratap Singh', trim: true },
+    adminContactEmail: {
+      type: String,
+      default: 'raghurajpratapsingh8787@gmail.com',
+      trim: true,
+      lowercase: true,
+    },
     dailyFineRate: { type: Number, default: 1.5, min: 0 },
     maxFineAmount: { type: Number, default: 50, min: 0 },
     gracePeriodDays: { type: Number, default: 1, min: 0 },

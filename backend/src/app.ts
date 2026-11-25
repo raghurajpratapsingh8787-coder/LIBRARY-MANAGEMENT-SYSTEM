@@ -11,6 +11,7 @@ import { authenticate, type AccessTokenPayload } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 import { apiRateLimiter, createCorsMiddleware, helmetMiddleware, sanitizeNoSql } from './middleware/security';
 import { servePrivateCover } from './middleware/upload';
+import { Session, User } from './models';
 import authRoutes from './routes/authRoutes';
 import bookRoutes from './routes/bookRoutes';
 import circulationRoutes from './routes/circulationRoutes';
@@ -88,15 +89,23 @@ export async function createAppServer(options?: { skipVite?: boolean }) {
     },
   });
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token || typeof token !== 'string') {
       return next(new Error('Unauthorized'));
     }
     try {
       const payload = jwt.verify(token, env.jwtAccessSecret) as AccessTokenPayload;
-      socket.data.userId = payload.sub;
-      socket.data.role = payload.role;
+      const session = await Session.findById(payload.sessionId);
+      if (!session || session.isRevoked || session.expiresAt < new Date()) {
+        return next(new Error('Unauthorized'));
+      }
+      const user = await User.findById(payload.sub).select('isActive role');
+      if (!user || !user.isActive) {
+        return next(new Error('Unauthorized'));
+      }
+      socket.data.userId = String(user._id);
+      socket.data.role = user.role;
       next();
     } catch {
       next(new Error('Unauthorized'));

@@ -9,6 +9,8 @@ interface AuthContextValue {
   needsBootstrap: boolean;
   allowMemberSelfRegistration: boolean;
   libraryName: string;
+  adminContactName: string;
+  adminContactEmail: string;
   notifications: NotificationItem[];
   unreadCount: number;
   login: (email: string, password: string) => Promise<void>;
@@ -40,7 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [needsBootstrap, setNeedsBootstrap] = useState(false);
   const [allowMemberSelfRegistration, setAllowMemberSelfRegistration] = useState(true);
-  const [libraryName, setLibraryName] = useState('Folio Ledger Central Library');
+  const [libraryName, setLibraryName] = useState('Library Management System');
+  const [adminContactName, setAdminContactName] = useState('Raghuraj Pratap Singh');
+  const [adminContactEmail, setAdminContactEmail] = useState('raghurajpratapsingh8787@gmail.com');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const refreshNotifications = useCallback(async () => {
@@ -58,11 +62,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       needsBootstrap: boolean;
       allowMemberSelfRegistration: boolean;
       libraryName: string;
+      adminContactName?: string;
+      adminContactEmail?: string;
       hasSessionCookie?: boolean;
     }>('/api/auth/status');
     setNeedsBootstrap(status.needsBootstrap);
     setAllowMemberSelfRegistration(status.allowMemberSelfRegistration);
-    setLibraryName(status.libraryName);
+    setLibraryName(status.libraryName || 'Library Management System');
+    if (status.adminContactName) setAdminContactName(status.adminContactName);
+    if (status.adminContactEmail) setAdminContactEmail(status.adminContactEmail);
     return status;
   }, []);
 
@@ -198,6 +206,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         needsBootstrap,
         allowMemberSelfRegistration,
         libraryName,
+        adminContactName,
+        adminContactEmail,
         notifications,
         unreadCount,
         login,

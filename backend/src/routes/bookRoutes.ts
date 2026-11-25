@@ -12,8 +12,10 @@ const router = express.Router();
 
 router.get('/', authenticate, async (req, res, next) => {
   try {
-    const page = Math.max(1, Number(req.query.page || 1));
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit || 20)));
+    const rawPage = Number(req.query.page || 1);
+    const rawLimit = Number(req.query.limit || 20);
+    const page = Number.isFinite(rawPage) ? Math.max(1, Math.trunc(rawPage)) : 1;
+    const limit = Number.isFinite(rawLimit) ? Math.min(100, Math.max(1, Math.trunc(rawLimit))) : 20;
     const search = String(req.query.search || '').trim();
     const categoryId = String(req.query.categoryId || '').trim();
     const status = String(req.query.status || '').trim();
@@ -92,7 +94,11 @@ router.get('/export/csv', authenticate, requireRole('SUPER_ADMIN', 'LIBRARIAN'),
       .populate('publisherId', 'name')
       .populate('categoryId', 'name');
 
-    const escapeCsv = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const escapeCsv = (v: unknown) => {
+      const raw = String(v ?? '');
+      const safe = /^[\t\r ]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+      return `"${safe.replace(/"/g, '""')}"`;
+    };
     const header = [
       'Book ID',
       'ISBN',

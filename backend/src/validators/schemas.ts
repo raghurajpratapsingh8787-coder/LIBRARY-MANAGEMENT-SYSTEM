@@ -1,5 +1,42 @@
 import { z } from 'zod';
 
+const safeAssetOrHttpUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .refine(
+    (val) => {
+      if (!val) return true;
+      if (val.startsWith('/api/uploads/covers/') || val.startsWith('/src/assets/')) {
+        return !val.includes('..');
+      }
+      try {
+        const parsed = new URL(val);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'URL must use http(s) or a valid internal asset path.' }
+  );
+
+const safeWebsiteUrl = z
+  .string()
+  .trim()
+  .max(300)
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const parsed = new URL(val);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Website must be a valid http(s) URL.' }
+  );
+
 export const objectIdSchema = z
   .string()
   .regex(/^[a-f\d]{24}$/i, 'Invalid identifier format.');
@@ -58,7 +95,7 @@ export const bookSchema = z.object({
   publisherId: objectIdSchema,
   categoryId: objectIdSchema,
   description: z.string().trim().max(3000).optional().default(''),
-  coverImageUrl: z.string().trim().max(500).optional().default(''),
+  coverImageUrl: safeAssetOrHttpUrl.optional().default(''),
   publicationDate: z.string().min(4, 'Publication date is required.'),
   edition: z.string().trim().max(60).optional().default('1st Edition'),
   language: z.string().trim().max(60).optional().default('English'),
@@ -73,13 +110,13 @@ export const authorSchema = z.object({
   biography: z.string().trim().max(2000).optional().default(''),
   nationality: z.string().trim().max(80).optional().default(''),
   birthYear: z.coerce.number().int().min(1000).max(2100).optional(),
-  website: z.string().trim().max(300).optional().default(''),
+  website: safeWebsiteUrl.optional().default(''),
 });
 
 export const publisherSchema = z.object({
   name: z.string().trim().min(2).max(140),
   country: z.string().trim().max(80).optional().default(''),
-  website: z.string().trim().max(300).optional().default(''),
+  website: safeWebsiteUrl.optional().default(''),
   contactEmail: z.string().trim().email().or(z.literal('')).optional().default(''),
   foundedYear: z.coerce.number().int().min(1400).max(2100).optional(),
 });
@@ -142,6 +179,14 @@ export const fineWaiveSchema = z.object({
 
 export const settingsSchema = z.object({
   libraryName: z.string().trim().min(2).max(140),
+  adminContactName: z.string().trim().min(2).max(120).optional().default('Raghuraj Pratap Singh'),
+  adminContactEmail: z
+    .string()
+    .trim()
+    .email('Valid contact email is required.')
+    .toLowerCase()
+    .optional()
+    .default('raghurajpratapsingh8787@gmail.com'),
   dailyFineRate: z.coerce.number().min(0).max(100),
   maxFineAmount: z.coerce.number().min(0).max(5000),
   gracePeriodDays: z.coerce.number().int().min(0).max(30),

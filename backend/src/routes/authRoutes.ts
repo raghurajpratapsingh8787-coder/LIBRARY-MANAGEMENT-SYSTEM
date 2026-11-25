@@ -81,7 +81,9 @@ router.get('/status', async (req, res, next) => {
     res.json({
       needsBootstrap: adminCount === 0 && !env.adminInitialPassword,
       allowMemberSelfRegistration: settings ? settings.allowMemberSelfRegistration : true,
-      libraryName: settings ? settings.libraryName : 'Folio Ledger Central Library',
+      libraryName: settings ? settings.libraryName : 'Library Management System',
+      adminContactName: settings?.adminContactName || 'Raghuraj Pratap Singh',
+      adminContactEmail: settings?.adminContactEmail || 'raghurajpratapsingh8787@gmail.com',
       hasSessionCookie: Boolean(parseCookie(req.headers.cookie, 'folio_refresh')),
     });
   } catch (err) {
@@ -419,6 +421,13 @@ router.put('/profile', authenticate, async (req: AuthenticatedRequest, res, next
       user.passwordHash = await bcrypt.hash(parsed.newPassword, 12);
     }
     await user.save();
+
+    if (parsed.newPassword) {
+      await Session.updateMany(
+        { userId: user._id, _id: { $ne: req.sessionId } },
+        { $set: { isRevoked: true } }
+      );
+    }
 
     res.json({
       id: String(user._id),

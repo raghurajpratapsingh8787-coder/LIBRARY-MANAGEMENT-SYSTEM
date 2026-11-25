@@ -1,6 +1,6 @@
 # Database Architecture (MongoDB & Mongoose)
 
-Folio Ledger implements 16 Mongoose collections with referential integrity, unique constraints, and atomic WiredTiger transactions:
+Library Management System implements 16 Mongoose collections with referential integrity, unique constraints, and atomic WiredTiger transactions:
 
 1. **User** — Accounts (`SUPER_ADMIN`, `LIBRARIAN`, `MEMBER`), bcrypt password hashes, reset tokens.
 2. **Book** — Bibliographic titles, unique `bookCode` & `isbn`, `availableCopies <= totalCopies` validator, text index.

@@ -81,18 +81,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
-  const { user, logout, libraryName } = useAuth();
+  const { user, logout, libraryName, adminContactName, adminContactEmail } = useAuth();
   const role = user?.role || 'MEMBER';
 
   const navContent = (
     <div className="flex flex-col h-full bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-slate-800 w-64">
       <div className="flex items-center justify-between gap-3 px-5 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-blue-600 text-white flex items-center justify-center font-display font-bold text-sm shrink-0">
-            FL
+          <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-blue-600 text-white flex items-center justify-center font-display font-bold text-xs tracking-tight shrink-0">
+            LMS
           </div>
           <span className="font-display font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
-            {libraryName.split(' ')[0]} Ledger
+            {libraryName || 'Library Management System'}
           </span>
         </div>
         <button
@@ -142,7 +142,15 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0 space-y-2">
+        <div className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800">
+          <div className="text-[11px] font-medium text-slate-700 dark:text-slate-200 truncate">
+            {adminContactName}
+          </div>
+          <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
+            {adminContactEmail}
+          </div>
+        </div>
         <button
           type="button"
           onClick={() => logout()}

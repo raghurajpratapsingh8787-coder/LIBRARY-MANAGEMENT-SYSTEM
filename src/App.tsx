@@ -34,7 +34,7 @@ function ProtectedRoute({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B1120] text-sm text-slate-500">
-        Loading Folio Ledger...
+        Loading Library Management System...
       </div>
     );
   }
@@ -49,7 +49,7 @@ function AppRoutes() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B1120] text-sm text-slate-500">
-        Loading Folio Ledger...
+        Loading Library Management System...
       </div>
     );
   }

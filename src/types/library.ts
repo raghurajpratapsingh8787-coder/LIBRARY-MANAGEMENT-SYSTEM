@@ -179,6 +179,8 @@ export interface AuditLogItem {
 export interface LibrarySettings {
   _id?: string;
   libraryName: string;
+  adminContactName: string;
+  adminContactEmail: string;
   dailyFineRate: number;
   maxFineAmount: number;
   gracePeriodDays: number;

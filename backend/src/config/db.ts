@@ -77,9 +77,18 @@ export async function runInTransaction<T>(
 }
 
 export async function disconnectDatabase(): Promise<void> {
-  await mongoose.disconnect();
+  try {
+    await mongoose.disconnect();
+  } catch {
+    // Ignore disconnect errors during shutdown
+  }
   if (replSet) {
-    await replSet.stop();
+    const target = replSet;
     replSet = null;
+    try {
+      await target.stop();
+    } catch {
+      // mongod may already be stopped by process-group SIGTERM
+    }
   }
 }

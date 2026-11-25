@@ -13,6 +13,8 @@ export function AuthPage() {
     needsBootstrap,
     allowMemberSelfRegistration,
     libraryName,
+    adminContactName,
+    adminContactEmail,
     login,
     bootstrap,
     registerMember,
@@ -26,8 +28,10 @@ export function AuthPage() {
   const [error, setError] = useState('');
 
   // Login / Bootstrap / Register fields
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState(needsBootstrap ? 'admin@folio.library' : '');
+  const [name, setName] = useState(needsBootstrap ? adminContactName || 'Raghuraj Pratap Singh' : '');
+  const [email, setEmail] = useState(
+    needsBootstrap ? adminContactEmail || 'raghurajpratapsingh8787@gmail.com' : ''
+  );
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
@@ -144,8 +148,8 @@ export function AuthPage() {
       <div className="lg:w-[46%] bg-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-display font-bold text-sm">
-              FL
+            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-display font-bold text-xs tracking-tight">
+              LMS
             </div>
             <span className="font-display font-semibold text-base tracking-tight">
               {libraryName}
@@ -181,7 +185,7 @@ export function AuthPage() {
         </div>
 
         <div className="text-xs text-slate-400">
-          Folio Ledger Library Operations Platform
+          Library Management System · {adminContactName} ({adminContactEmail})
         </div>
       </div>
 
@@ -224,7 +228,7 @@ export function AuthPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Elena Vance"
+                  placeholder="Raghuraj Pratap Singh"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                 />
               </div>
@@ -239,7 +243,7 @@ export function AuthPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@folio.library"
+                  placeholder="raghurajpratapsingh8787@gmail.com"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                 />
               </div>
@@ -299,7 +303,7 @@ export function AuthPage() {
                       required
                       value={demoStaffPassword}
                       onChange={(e) => setDemoStaffPassword(e.target.value)}
-                      placeholder="Password for librarian@ & member@folio.library"
+                      placeholder="Password for librarian@ & member@library.local"
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950"
                     />
                   </div>
@@ -320,7 +324,7 @@ export function AuthPage() {
                 <div className="flex items-center gap-2">
                   <Library className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   <h2 className="font-display text-xl font-bold">
-                    {mode === 'login' && 'Sign in to Folio Ledger'}
+                    {mode === 'login' && `Sign in to ${libraryName}`}
                     {mode === 'register' && 'Member Registration'}
                     {mode === 'forgot' && 'Recover Password'}
                     {mode === 'reset' && 'Reset Password'}
@@ -379,7 +383,7 @@ export function AuthPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@folio.library"
+                      placeholder="you@library.local"
                       className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     />
                   </div>

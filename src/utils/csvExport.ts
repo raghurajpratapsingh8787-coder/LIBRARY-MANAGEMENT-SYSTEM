@@ -5,8 +5,9 @@ export function downloadDelimitedFile(
   delimiter = ','
 ): void {
   const escapeCell = (val: string | number) => {
-    const str = String(val ?? '');
-    return `"${str.replace(/"/g, '""')}"`;
+    const raw = String(val ?? '');
+    const safe = /^[\t\r ]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+    return `"${safe.replace(/"/g, '""')}"`;
   };
 
   const lines = [

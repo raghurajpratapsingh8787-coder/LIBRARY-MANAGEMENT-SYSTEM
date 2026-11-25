@@ -1,5 +1,5 @@
 {
-  "name": "Folio Ledger — Library Management System",
+  "name": "Library Management System",
   "description": "Production-grade Library Management System with real MongoDB & Mongoose persistence, role-based access control, circulation workflows, reservations, fine management, and analytics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
